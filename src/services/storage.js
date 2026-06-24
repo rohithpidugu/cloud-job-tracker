@@ -1,21 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Grab the raw variables
+// Clean the environment variables
 const rawUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const rawKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-// Forcefully clean them of any hidden spaces, newlines, or accidental quotes
 const supabaseUrl = rawUrl.replace(/['"]/g, '').trim();
 const supabaseKey = rawKey.replace(/['"]/g, '').trim();
-
-// Double-check the URL has https://
 const finalUrl = supabaseUrl.startsWith('http') ? supabaseUrl : `https://${supabaseUrl}`;
 
 const supabase = createClient(finalUrl, supabaseKey);
 
+// Data Service
 export const JobService = {
   getJobs: async () => {
-    // Fetch all records, sorted by newest first
     const { data, error } = await supabase
       .from('job_applications')
       .select('*')
@@ -29,23 +25,90 @@ export const JobService = {
   },
 
   saveJob: async (jobData) => {
-    // Insert the new job and ask Supabase to return the saved record instantly
     const { data, error } = await supabase
       .from('job_applications')
       .insert([{
         company_name: jobData.company_name,
         role_title: jobData.role_title,
         source_site: jobData.source_site,
+        // NEW: Only save referral info if Referral is selected
+        referrer_name: jobData.source_site === 'Referral' ? jobData.referrer_name : null,
+        referrer_email: jobData.source_site === 'Referral' ? jobData.referrer_email : null,
         resume_version: jobData.resume_version,
+        resume_link: jobData.resume_link || null,
         status: jobData.status
       }])
       .select()
       .single();
 
-    if (error) {
-      console.error("Error saving job:", error);
-      throw error;
-    }
+    if (error) throw error;
     return data;
+  },
+
+  // NEW: Updates just the status of a specific job
+  updateJobStatus: async (id, newStatus) => {
+    const { data, error } = await supabase
+      .from('job_applications')
+      .update({ status: newStatus })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // NEW: Deletes a specific job entirely
+  deleteJob: async (id) => {
+    const { error } = await supabase
+      .from('job_applications')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  }
+};
+
+// Authentication Service
+export const AuthService = {
+  getSession: async () => {
+    return await supabase.auth.getSession();
+  },
+  
+  onAuthStateChange: (callback) => {
+    return supabase.auth.onAuthStateChange(callback);
+  },
+  
+  // Logs a user in
+  signIn: async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+  },
+
+  // NEW: Registers a new user
+  signUp: async (email, password) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    return data;
+  },
+  
+  // NEW: Triggers the secure Google/GitHub login screen
+  signInWithOAuth: async (provider) => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider,
+      // This tells Supabase where to send the user after they log in
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  signOut: async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   }
 };
