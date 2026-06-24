@@ -275,7 +275,7 @@ export default function App() {
         {/* Creator Attribution & Tip Jar */}
         <div className="flex flex-col items-center justify-center space-y-3 p-6 bg-gray-50 rounded-xl border border-gray-100 max-w-sm mx-auto">
           <p className="text-sm text-gray-500">
-            Built with 💻 by <span className="font-semibold text-gray-800">Ron</span>
+            Built with 💻 and ❤️ by <span className="font-semibold text-gray-800">Ron</span>
           </p>
           <a 
             href="https://buymeacoffee.com/rohithpidugu" 
