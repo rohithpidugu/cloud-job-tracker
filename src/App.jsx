@@ -257,15 +257,34 @@ export default function App() {
         </div>
       </div>
 
-      {/* NEW: Quick Links Footer */}
-      <footer className="mt-12 pt-6 border-t border-gray-200 text-center">
-        <p className="text-sm font-semibold text-gray-600 mb-4">Quick Job Board Links</p>
-        <div className="flex flex-wrap justify-center gap-3">
-          <a href="https://linkedin.com/jobs" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">LinkedIn</a>
-          <a href="https://indeed.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">Indeed</a>
-          <a href="https://glassdoor.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">Glassdoor</a>
-          <a href="https://ziprecruiter.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">ZipRecruiter</a>
-          <a href="https://simplyhired.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">SimplyHired</a>
+      {/* Quick Links & Creator Footer */}
+      <footer className="mt-12 pt-8 border-t border-gray-200 text-center pb-8">
+        
+        {/* Job Boards */}
+        <div className="mb-10">
+          <p className="text-sm font-semibold text-gray-600 mb-4">Quick Job Board Links</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <a href="https://linkedin.com/jobs" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">LinkedIn</a>
+            <a href="https://indeed.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">Indeed</a>
+            <a href="https://glassdoor.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">Glassdoor</a>
+            <a href="https://ziprecruiter.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">ZipRecruiter</a>
+            <a href="https://simplyhired.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">SimplyHired</a>
+          </div>
+        </div>
+
+        {/* Creator Attribution & Tip Jar */}
+        <div className="flex flex-col items-center justify-center space-y-3 p-6 bg-gray-50 rounded-xl border border-gray-100 max-w-sm mx-auto">
+          <p className="text-sm text-gray-500">
+            Built with 💻 by <span className="font-semibold text-gray-800">Ron</span>
+          </p>
+          <a 
+            href="https://buymeacoffee.com/rohithpidugu" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#FFDD00] hover:bg-[#FFD000] text-black text-sm font-bold rounded-xl shadow-sm transition-transform hover:-translate-y-0.5 active:translate-y-0"
+          >
+            ☕ Buy me a coffee
+          </a>
         </div>
       </footer>
     </div>
