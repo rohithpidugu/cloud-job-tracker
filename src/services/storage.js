@@ -87,9 +87,15 @@ export const AuthService = {
     return data;
   },
 
-  // NEW: Registers a new user
-  signUp: async (email, password) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+  // NEW: Registers a new user WITH their name
+  signUp: async (email, password, name) => {
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: { full_name: name } // Saves the name to the user profile
+      }
+    });
     if (error) throw error;
     return data;
   },

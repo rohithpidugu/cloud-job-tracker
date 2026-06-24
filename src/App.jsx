@@ -7,11 +7,13 @@ export default function App() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // 1. Updated Initial State
+  // NEW: Search and Sort States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('date-desc');
+
   const [formData, setFormData] = useState({
     company_name: '', role_title: '', source_site: 'LinkedIn', 
-    referrer_name: '', referrer_email: '', // NEW
-    resume_version: '', resume_link: '', status: 'Applied'
+    referrer_name: '', referrer_email: '', resume_version: '', resume_link: '', status: 'Applied'
   });
 
   useEffect(() => {
@@ -39,11 +41,7 @@ export default function App() {
     try {
       const savedJob = await JobService.saveJob(formData);
       setJobs(current => current.map(j => j.id === tempJob.id ? savedJob : j));
-      // Reset form properly
-      setFormData({ 
-        ...formData, company_name: '', role_title: '', resume_link: '', 
-        referrer_name: '', referrer_email: '' 
-      }); 
+      setFormData({ ...formData, company_name: '', role_title: '', resume_link: '', referrer_name: '', referrer_email: '' }); 
     } catch (error) {
       console.error(error);
     }
@@ -59,6 +57,7 @@ export default function App() {
   };
 
   const handleDelete = async (id) => {
+    if(!window.confirm("Are you sure you want to delete this application?")) return;
     setJobs(current => current.filter(job => job.id !== id));
     try {
       await JobService.deleteJob(id);
@@ -67,27 +66,50 @@ export default function App() {
     }
   };
 
+  // NEW: Filter and Sort Logic (Happens instantly in the browser)
+  const filteredAndSortedJobs = jobs
+    .filter(job => {
+      const query = searchQuery.toLowerCase();
+      return job.company_name.toLowerCase().includes(query) || 
+             job.role_title.toLowerCase().includes(query) ||
+             job.source_site.toLowerCase().includes(query);
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date-desc') return new Date(b.applied_at) - new Date(a.applied_at);
+      if (sortBy === 'date-asc') return new Date(a.applied_at) - new Date(b.applied_at);
+      if (sortBy === 'company') return a.company_name.localeCompare(b.company_name);
+      if (sortBy === 'role') return a.role_title.localeCompare(b.role_title);
+      if (sortBy === 'status') return a.status.localeCompare(b.status);
+      return 0;
+    });
+
   if (!session) return <Auth />;
   if (loading) return <div className="p-8 text-center text-gray-500">Loading pipeline...</div>;
 
+  // Extract the user's name (From Google Auth OR Custom Sign Up)
+  const userName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8">
-      <header className="mb-8 border-b pb-4 flex justify-between items-end">
+    <div className="max-w-6xl mx-auto p-4 md:p-8 flex flex-col min-h-screen">
+      
+      {/* Header with Personalized Welcome */}
+      <header className="mb-8 border-b pb-4 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
         <div className="flex items-center gap-4">
           <img src="/logo.png" alt="Logo" className="h-12 w-auto hidden sm:block" />
           <div>
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Application Tracker</h1>
-            <p className="text-gray-500 mt-1">Keep track of which resume went where.</p>
+            <p className="text-gray-600 mt-1 font-medium text-lg">Welcome back, <span className="text-blue-600">{userName}</span>! 👋</p>
           </div>
         </div>
-        <button onClick={() => AuthService.signOut()} className="text-sm text-gray-500 hover:text-gray-900 font-medium pb-1">
+        <button onClick={() => AuthService.signOut()} className="text-sm text-gray-500 hover:text-gray-900 font-medium pb-1 self-start sm:self-auto">
           Sign Out
         </button>
       </header>
 
-      <div className="grid md:grid-cols-[350px_1fr] gap-8">
+      {/* Main Content Area */}
+      <div className="grid lg:grid-cols-[350px_1fr] gap-8 flex-grow">
         
-        {/* Input Form */}
+        {/* Left Column: Input Form */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-fit">
           <h2 className="text-lg font-semibold mb-4 text-gray-800">Log New Application</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,8 +123,6 @@ export default function App() {
               <input required type="text" name="role_title" value={formData.role_title} onChange={handleInputChange} 
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
-            
-            {/* Source Site with Conditional Referral Box */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Source / Site</label>
               <select name="source_site" value={formData.source_site} onChange={handleInputChange} 
@@ -111,21 +131,20 @@ export default function App() {
                 <option>Company Website</option>
                 <option>Indeed</option>
                 <option>Referral</option>
+                <option>ZipRecruiter</option>
+                <option>Glassdoor</option>
               </select>
               
-              {/* 2. Conditional UI for Referral */}
               {formData.source_site === 'Referral' && (
-                <div className="grid grid-cols-2 gap-3 mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg animate-in fade-in zoom-in duration-200">
+                <div className="grid grid-cols-2 gap-3 mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Referrer Name</label>
                     <input type="text" name="referrer_name" value={formData.referrer_name} onChange={handleInputChange} 
-                      placeholder="Optional"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-xs" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Referrer Email</label>
                     <input type="email" name="referrer_email" value={formData.referrer_email} onChange={handleInputChange} 
-                      placeholder="Optional"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-xs" />
                   </div>
                 </div>
@@ -136,33 +155,56 @@ export default function App() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Resume Name</label>
                 <input required type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} 
-                  placeholder="e.g. Frontend v3"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Link (Optional)</label>
                 <input type="url" name="resume_link" value={formData.resume_link} onChange={handleInputChange} 
-                  placeholder="https://..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm" />
               </div>
             </div>
-            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg mt-2">
+            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg mt-2 transition-colors">
               Save Application
             </button>
           </form>
         </div>
 
-        {/* Pipeline Map */}
+        {/* Right Column: Pipeline Map with Search/Sort */}
         <div>
-          <h2 className="text-lg font-semibold mb-4 text-gray-800">Your Pipeline ({jobs.length})</h2>
-          {jobs.length === 0 ? (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">Your Pipeline ({filteredAndSortedJobs.length})</h2>
+            
+            {/* NEW: Search and Sort Controls */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input 
+                type="text" 
+                placeholder="Search roles, companies..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none bg-white cursor-pointer"
+              >
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="company">Company (A-Z)</option>
+                <option value="role">Role (A-Z)</option>
+                <option value="status">Status</option>
+              </select>
+            </div>
+          </div>
+
+          {filteredAndSortedJobs.length === 0 ? (
             <div className="text-center p-8 bg-gray-50 border border-dashed border-gray-300 rounded-xl text-gray-500">
-              No applications tracked yet. Add your first one!
+              {jobs.length === 0 ? "No applications tracked yet. Add your first one!" : "No applications match your search."}
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
-              {jobs.map(job => (
-                <div key={job.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative group">
+              {filteredAndSortedJobs.map(job => (
+                <div key={job.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all relative group">
                   
                   <button onClick={() => handleDelete(job.id)} className="absolute top-3 right-3 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Delete Job">✕</button>
 
@@ -189,7 +231,6 @@ export default function App() {
                   <div className="space-y-1.5 pt-3 border-t border-gray-100">
                     <p className="text-xs text-gray-500 flex items-center gap-2"><span className="font-semibold text-gray-700">Source:</span> {job.source_site}</p>
                     
-                    {/* 3. Display Referral Info if it exists */}
                     {job.source_site === 'Referral' && (job.referrer_name || job.referrer_email) && (
                       <p className="text-xs text-gray-500 bg-gray-50 p-1.5 rounded border border-gray-100">
                         <span className="font-semibold text-gray-700">Referred by:</span> {job.referrer_name || 'N/A'} {job.referrer_email ? `(${job.referrer_email})` : ''}
@@ -215,6 +256,18 @@ export default function App() {
           )}
         </div>
       </div>
+
+      {/* NEW: Quick Links Footer */}
+      <footer className="mt-12 pt-6 border-t border-gray-200 text-center">
+        <p className="text-sm font-semibold text-gray-600 mb-4">Quick Job Board Links</p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <a href="https://linkedin.com/jobs" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">LinkedIn</a>
+          <a href="https://indeed.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">Indeed</a>
+          <a href="https://glassdoor.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">Glassdoor</a>
+          <a href="https://ziprecruiter.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">ZipRecruiter</a>
+          <a href="https://simplyhired.com" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-colors">SimplyHired</a>
+        </div>
+      </footer>
     </div>
   );
 }
