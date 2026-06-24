@@ -73,9 +73,12 @@ export default function App() {
   return (
     <div className="max-w-5xl mx-auto p-4 md:p-8">
       <header className="mb-8 border-b pb-4 flex justify-between items-end">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Application Tracker</h1>
-          <p className="text-gray-500 mt-1">Keep track of which resume went where.</p>
+        <div className="flex items-center gap-4">
+          <img src="/logo.png" alt="Logo" className="h-12 w-auto hidden sm:block" />
+          <div>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Application Tracker</h1>
+            <p className="text-gray-500 mt-1">Keep track of which resume went where.</p>
+          </div>
         </div>
         <button onClick={() => AuthService.signOut()} className="text-sm text-gray-500 hover:text-gray-900 font-medium pb-1">
           Sign Out

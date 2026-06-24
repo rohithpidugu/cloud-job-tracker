@@ -38,7 +38,8 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-        <div>
+        <div className="flex flex-col items-center">
+          <img src="/logo.png" alt="Job Tracker Logo" className="h-20 w-auto mb-2" />
           <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900">
             Job Tracker
           </h2>
